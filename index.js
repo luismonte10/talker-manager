@@ -22,7 +22,7 @@ const HTTP_NOT_FOUND_STATUS = 404;
 
 const filePath = './talker.json';
 
-// pegar a lista completa
+// pega a lista completa
 const getTalkersList = async () => {
   const response = await fs.readFile(filePath);
   const data = JSON.parse(response);
@@ -62,6 +62,7 @@ app.post('/login', emailValidation, passwordValidation, (_req, res) => {
   res.status(HTTP_OK_STATUS).json({ token: createToken() });
 });
 
+// requisito 05
 app.post('/talker',
   tokenValidation,
   nameValidation,
@@ -70,22 +71,50 @@ app.post('/talker',
   dateValidation,
   rateValidation,
   async (req, res) => {
-  const { name, age, talk } = req.body;
+    const { name, age, talk } = req.body;
 
-  const talkersList = await getTalkersList();
-  const id = talkersList.length + 1;
-  const newTalker = ({ id, name, age, talk });
+    const talkersList = await getTalkersList();
+    const id = talkersList.length + 1;
+    const newTalker = ({ id, name, age, talk });
 
-  talkersList.push(newTalker);
+    talkersList.push(newTalker);
 
-  fs.writeFile(filePath, JSON.stringify(talkersList));
+    fs.writeFile(filePath, JSON.stringify(talkersList));
 
-  return res.status(201).json({ 
-    id,
-    name,
-    age,
-    talk,
-   });
+    return res.status(201).json({ 
+      id,
+      name,
+      age,
+      talk,
+    });
+});
+
+// requisito 06
+app.put('/talker/:id',
+  tokenValidation,
+  nameValidation,
+  ageValidation,
+  talkValidation,
+  dateValidation,
+  rateValidation,
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, age, talk } = req.body;   
+    const talkersList = await getTalkersList();
+
+    const filteredList = talkersList.filter((talker) => Number(talker.id) !== Number(id));
+    const editedTalker = {
+      id: Number(id),
+      name,
+      age,
+      talk,
+    };
+
+    filteredList.push(editedTalker);
+
+    fs.writeFile(filePath, JSON.stringify(filteredList));
+
+    return res.status(HTTP_OK_STATUS).json(editedTalker);
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
