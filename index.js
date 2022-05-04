@@ -117,6 +117,19 @@ app.put('/talker/:id',
     return res.status(HTTP_OK_STATUS).json(editedTalker);
 });
 
+// requisito 07
+app.delete('/talker/:id', tokenValidation, async (req, res) => {
+  const { id } = req.params;
+
+  const talkersList = await getTalkersList();
+
+  const newList = talkersList.filter((talker) => Number(talker.id) !== Number(id));
+
+  fs.writeFile(filePath, JSON.stringify(newList));
+
+  return res.status(204).json();
+});
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
