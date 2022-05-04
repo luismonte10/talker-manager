@@ -2,6 +2,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs/promises');
 const { emailValidation, passwordValidation } = require('./middlewares/loginMiddlewares');
+const { tokenValidation } = require('./middlewares/authTokenMiddleware');
+const { 
+  nameValidation,
+  ageValidation,
+  talkValidation,
+  dateValidation,
+  rateValidation,
+} = require('./middlewares/newTalkerMiddleware');
 
 const app = express();
 app.use(bodyParser.json());
@@ -49,8 +57,35 @@ app.get('/talker/:id', async (req, res) => {
   return res.status(HTTP_OK_STATUS).json(talkerById);
 });
 
-app.post('/login', emailValidation, passwordValidation, (req, res) => {
+// requisitos 03 e 04
+app.post('/login', emailValidation, passwordValidation, (_req, res) => {
   res.status(HTTP_OK_STATUS).json({ token: createToken() });
+});
+
+app.post('/talker',
+  tokenValidation,
+  nameValidation,
+  ageValidation,
+  talkValidation,
+  dateValidation,
+  rateValidation,
+  async (req, res) => {
+  const { name, age, talk } = req.body;
+
+  const talkersList = await getTalkersList();
+  const id = talkersList.length + 1;
+  const newTalker = ({ id, name, age, talk });
+
+  talkersList.push(newTalker);
+
+  fs.writeFile(filePath, JSON.stringify(talkersList));
+
+  return res.status(201).json({ 
+    id,
+    name,
+    age,
+    talk,
+   });
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
